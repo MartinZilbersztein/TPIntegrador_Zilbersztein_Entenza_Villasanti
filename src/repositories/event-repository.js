@@ -1,4 +1,4 @@
-import DBConfig from './../dbConfig.js';
+import DBConfig from './../configs/dbConfig.js';
 import pkg from 'pg';
 const {Client, Pool} = pkg;
 
@@ -18,7 +18,11 @@ export default class EventRepository{
         }
         return retorno;
     }
-
-
-
+    /*getPorNombre = async() =>{
+        const cliente = new Client(DBConfig);
+        /*try{
+            await cliente.connect();
+            const sql = 'SELECT * FROM events WHERE nombre = '
+        }
+    }*/
 }

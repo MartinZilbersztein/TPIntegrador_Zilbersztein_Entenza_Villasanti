@@ -8,8 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/event', EventRouter);
-
-
+app.use('/api/event/?name', EventRouter);
 
 
 app.listen(port, () => {

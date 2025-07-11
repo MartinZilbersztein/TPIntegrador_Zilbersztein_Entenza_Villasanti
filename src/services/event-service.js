@@ -1,4 +1,4 @@
-import EventRepository from "../repositories/event-repository";
+import EventRepository from "../repositories/event-repository.js";
 
 export default class EventService{
     getAllASync = async() =>{
