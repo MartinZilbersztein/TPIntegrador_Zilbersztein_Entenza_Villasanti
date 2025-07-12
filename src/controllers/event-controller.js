@@ -4,9 +4,10 @@ import EventService from './../services/event-service.js';
 const router = Router();
 const svc = new EventService();
 
-router.get('', async(req,res)=>{
+router.get('/', async(req,res)=>{
     let respuesta;
-    const returnArray = await svc.getAllASync();
+    let {name, start_date} = req.query;
+    const returnArray = await svc.getAllASync({name, start_date});
     if (returnArray)
     {
         respuesta = res.status(200).json(returnArray);
@@ -16,13 +17,18 @@ router.get('', async(req,res)=>{
     }
     return respuesta;
 });
-router.get('/:nombre', async (req, res) => {
-    let par = req.params.nombre;
-    if (par)
-    console.log(par);
-    else{
-        console.log("Error :(")
+router.get('/:id', async(req,res)=>{
+    let id = req.params.id;
+    let respuesta;
+    const returnArray = await svc.getAllASyncById(id);
+    if (returnArray)
+    {
+        respuesta = res.status(200).json(returnArray);
     }
-    return res.status(300).send("hola");
+    else {
+        respuesta = res.status(500).send("Error interno");
+    }
+    return respuesta;
 })
+
 export default router; 
