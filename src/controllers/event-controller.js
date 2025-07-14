@@ -29,6 +29,10 @@ router.get('/:id', async(req,res)=>{
         respuesta = res.status(500).send("Error interno");
     }
     return respuesta;
-})
+});
+router.post('/', async(req,res)=>{
+    let respuesta;
+    let {name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user} = req.query;
+});
 
 export default router; 
