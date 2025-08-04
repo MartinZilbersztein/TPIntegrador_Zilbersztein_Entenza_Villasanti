@@ -33,20 +33,29 @@ router.get('/:id', async(req,res)=>{
     return respuesta;
 });
 router.post('/', async(req,res)=>{
-    let respuesta;
-    let {name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user} = req.query;
-});
-router.post('/api/event', async(req,res)=>{
     const {name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance} = req.body;
     const secretKey = process.env.SECRET_KEY;
-    let payloadOriginal = null;
+    let payloadOriginal = null, token, mensaje = "", success = true;
+    const bearerHeader = req.headers['authorization'];
+    if (typeof bearerHeader !== 'undefined') 
+    {
+       const bearer = bearerHeader.split(' ');
+       token = bearer[1];
+    }
     try{
         payloadOriginal = jwt.verify(token, secretKey);
+        if (payloadOriginal.id){
+            if (name.length < 3 || description.length < 3) mensaje = res.status(400).send("El nombre y la descripción deben tener al menos tres letras");
+            let maxAssistanceLugar = await svc.maxAssistanceLugar(id_event_location); 
+            maxAssistanceLugar = (maxAssistanceLugar[0].max_capacity);
+            if (maxAssistanceLugar < max_assistance) mensaje = res.status(400).send("La capacidad excede el máximo");
+            if (start_date < Date.now()) console.log("hola");
+        }
     }
     catch(error){
         console.log(error);
     }
-
-})
+    return mensaje;
+});
 
 export default router; 

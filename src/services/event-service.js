@@ -8,4 +8,7 @@ export default class EventService{
     getAllASyncById = async(id) =>{
         return await repo.getAllASyncById(id); 
     }
+    maxAssistanceLugar = async(id)=>{
+        return await repo.maxAssistanceLugar(id);
+    }
 }

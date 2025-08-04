@@ -105,4 +105,20 @@ export default class EventRepository{
         }
         return retorno;
     }
+    maxAssistanceLugar = async(id) =>{
+        const client = new Client(DBConfig);
+        let retorno;
+        try{
+            await client.connect();
+            const sql = `select max_capacity from event_locations where id = ${id}`
+            const result = await client.query(sql);
+            await client.end();
+            retorno = result.rows;
+            console.log("hola");
+        }
+        catch(error) {
+            console.log(error)
+        };
+        return retorno;
+    }
 }
