@@ -24,7 +24,22 @@ export default class UserRepository{
         let retorno;
         try{
             await client.connect();
-            const sql = `SELECT id, username FROM users WHERE username = '${username}' AND password = '${password}'`
+            const sql = `SELECT id, username FROM users WHERE username = '${username}' AND password = '${password}'`;
+            const result = await client.query(sql);
+            await client.end();
+            retorno = result.rows;
+        }
+        catch(error){
+            console.log(error);
+        }
+        return retorno;
+    }
+    existeEmail = async (username) =>{
+        const client = new Client(DBConfig);
+        let retorno;
+        try{
+            await client.connect();
+            const sql = `SELECT username FROM users WHERE username = '${username}'`
             const result = await client.query(sql);
             await client.end();
             retorno = result.rows;
