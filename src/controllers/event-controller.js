@@ -32,11 +32,12 @@ router.get('/:id', async(req,res)=>{
     }
     return respuesta;
 });
-router.post('/', async(req,res)=>{
+router.post('/', async(req,res)=>{//agregar evento
     const {name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance} = req.body;
     const secretKey = process.env.SECRET_KEY;
     let payloadOriginal = null, token, mensaje = "", success = true;
     const bearerHeader = req.headers['authorization'];
+    const fechaUsar = new Date(start_date).getTime();
     if (typeof bearerHeader !== 'undefined') 
     {
        const bearer = bearerHeader.split(' ');
@@ -47,9 +48,18 @@ router.post('/', async(req,res)=>{
         if (payloadOriginal.id){
             if (name.length < 3 || description.length < 3) mensaje = res.status(400).send("El nombre y la descripción deben tener al menos tres letras");
             let maxAssistanceLugar = await svc.maxAssistanceLugar(id_event_location); 
-            maxAssistanceLugar = (maxAssistanceLugar[0].max_capacity);
-            if (maxAssistanceLugar < max_assistance) mensaje = res.status(400).send("La capacidad excede el máximo");
-            if (start_date < Date.now()) console.log("hola");
+            if (maxAssistanceLugar.length == 0) mensaje = res.status(400).send("No existe el lugar mencionado");
+            else 
+            {
+                maxAssistanceLugar = (maxAssistanceLugar[0].max_capacity);
+                if (maxAssistanceLugar < max_assistance) mensaje = res.status(400).send("La capacidad excede el máximo");
+            }
+            if (fechaUsar >= Date.now()) mensaje = res.status(400).send("La fecha no puede ser posterior o la misma que la acutal");
+            if (price < 0) mensaje = res.status(400).send("El precio no puede ser menor a 0")
+            if (!mensaje)
+            {
+               const array = svc.anadirEvento(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,payloadOriginal.id); 
+            }
         }
     }
     catch(error){

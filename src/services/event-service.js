@@ -11,4 +11,7 @@ export default class EventService{
     maxAssistanceLugar = async(id)=>{
         return await repo.maxAssistanceLugar(id);
     }
+    anadirEvento = async(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,payloadOriginalId) =>{
+        return await repo.anadirEvento(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,payloadOriginalId);
+    }
 }

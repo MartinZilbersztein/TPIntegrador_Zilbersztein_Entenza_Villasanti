@@ -57,7 +57,7 @@ router.post('/register', async(req,res)=>{
     {
        try{
         emailExiste = await svc.existeEmail(username);
-        if (emailExiste.length === 0)
+        if (emailExiste.length == 0)
         {
             returnArray = await svc.register(first_name, last_name, username, password);
             respuesta = res.status(201).send("Creado");

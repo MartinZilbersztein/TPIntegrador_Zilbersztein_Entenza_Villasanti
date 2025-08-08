@@ -114,7 +114,21 @@ export default class EventRepository{
             const result = await client.query(sql);
             await client.end();
             retorno = result.rows;
-            console.log("hola");
+        }
+        catch(error) {
+            console.log(error)
+        };
+        return retorno;
+    }
+    anadirEvento = async(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance, id )=>
+    {
+        const client = new Client(DBConfig);
+        let retorno;
+        try{
+            await client.connect();
+            const sql = `insert into Eventos (name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user) values(${name},${description},${id_event_location},${start_date},${duration_in_minutes},${price},${enabled_for_enrollment},${max_assistance},${id})`
+            const result = await client.query(sql);
+            retorno = result.rows;
         }
         catch(error) {
             console.log(error)
