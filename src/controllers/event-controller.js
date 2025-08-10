@@ -68,4 +68,110 @@ router.post('/', async(req,res)=>{//agregar evento
     return mensaje;
 });
 
-export default router; 
+router.post('/:id/enrollment', async (req, res) => {
+    const eventId = req.params.id;
+    const bearerHeader = req.headers['authorization'];
+    const secretKey = process.env.SECRET_KEY;
+    let token, payload;
+
+    if (!bearerHeader) {
+        return res.status(401).json({ success: false, mensaje: "No autenticado" });
+    }
+    try {
+        token = bearerHeader.split(' ')[1];
+        payload = jwt.verify(token, secretKey);
+    } catch (err) {
+        return res.status(401).json({ success: false, mensaje: "Token inválido" });
+    }
+
+    // 1. Verificar que el evento existe
+    const eventArr = await svc.getAllASyncById(eventId);
+    if (!eventArr || eventArr.length === 0) {
+        return res.status(404).json({ success: false, mensaje: "Evento no encontrado" });
+    }
+    const event = eventArr[0].event;
+
+    // 2. Verificar si está habilitado para inscripción
+    if (!event.enabled_for_enrollment) {
+        return res.status(400).json({ success: false, mensaje: "El evento no está habilitado para inscripción" });
+    }
+
+    // 3. Verificar fecha del evento (no puede ser hoy ni pasada)
+    const eventDate = new Date(event.start_date);
+    const now = new Date();
+    if (
+        eventDate <= now ||
+        (eventDate.getFullYear() === now.getFullYear() &&
+         eventDate.getMonth() === now.getMonth() &&
+         eventDate.getDate() === now.getDate())
+    ) {
+        return res.status(400).json({ success: false, mensaje: "No se puede registrar a un evento pasado o que es hoy" });
+    }
+
+    // 4. Verificar capacidad máxima
+    const enrolledCount = await svc.countEnrollments(eventId);
+    if (enrolledCount >= event.max_assistance) {
+        return res.status(400).json({ success: false, mensaje: "Capacidad máxima alcanzada" });
+    }
+
+    // 5. Verificar si el usuario ya está registrado
+    const alreadyEnrolled = await svc.isUserEnrolled(payload.id, eventId);
+    if (alreadyEnrolled) {
+        return res.status(400).json({ success: false, mensaje: "El usuario ya está registrado en el evento" });
+    }
+
+    // 6. Registrar inscripción
+    const registrationDate = new Date();
+    await svc.enrollUser(payload.id, eventId, registrationDate);
+
+    return res.status(201).json({ success: true, mensaje: "Inscripción exitosa" });
+});
+
+router.delete('/:id/enrollment', async (req, res) => {
+    const eventId = req.params.id;
+    const bearerHeader = req.headers['authorization'];
+    const secretKey = process.env.SECRET_KEY;
+    let token, payload;
+
+    if (!bearerHeader) {
+        return res.status(401).json({ success: false, mensaje: "No autenticado" });
+    }
+    try {
+        token = bearerHeader.split(' ')[1];
+        payload = jwt.verify(token, secretKey);
+    } catch (err) {
+        return res.status(401).json({ success: false, mensaje: "Token inválido" });
+    }
+
+    // 1. Verificar que el evento existe
+    const eventArr = await svc.getAllASyncById(eventId);
+    if (!eventArr || eventArr.length === 0) {
+        return res.status(404).json({ success: false, mensaje: "Evento no encontrado" });
+    }
+    const event = eventArr[0].event;
+
+    // 2. Verificar si el usuario está registrado
+    const alreadyEnrolled = await svc.isUserEnrolled(payload.id, eventId);
+    if (!alreadyEnrolled) {
+        return res.status(400).json({ success: false, mensaje: "El usuario no está registrado en el evento" });
+    }
+
+    // 3. Verificar fecha del evento (no puede ser hoy ni pasada)
+    const eventDate = new Date(event.start_date);
+    const now = new Date();
+    if (
+        eventDate <= now ||
+        (eventDate.getFullYear() === now.getFullYear() &&
+         eventDate.getMonth() === now.getMonth() &&
+         eventDate.getDate() === now.getDate())
+    ) {
+        return res.status(400).json({ success: false, mensaje: "No se puede remover de un evento pasado o que es hoy" });
+    }
+
+    // 4. Remover inscripción
+    await svc.unenrollUser(payload.id, eventId);
+
+    return res.status(200).json({ success: true, mensaje: "Eliminado de la inscripción correctamente" });
+});
+
+export default router;

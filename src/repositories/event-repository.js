@@ -135,4 +135,60 @@ export default class EventRepository{
         };
         return retorno;
     }
+    isUserEnrolled = async (userId, eventId) => {
+        const client = new Client(DBConfig);
+        let retorno = false;
+        try {
+            await client.connect();
+            const sql = `SELECT 1 FROM event_enrollments WHERE id_user = $1 AND id_event = $2 LIMIT 1`;
+            const result = await client.query(sql, [id_user, id_event]);
+            await client.end();
+            retorno = result.rows.length > 0;
+        } catch (error) {
+            console.log(error);
+        }
+        return retorno;
+    }
+    countEnrollments = async (id_event) => {
+        const client = new Client(DBConfig);
+        let count = 0;
+        try {
+            await client.connect();
+            const sql = `SELECT COUNT(*) FROM event_enrollments WHERE id_event = $1`;
+            const result = await client.query(sql, [eventId]);
+            await client.end();
+            count = parseInt(result.rows[0].count, 10);
+        } catch (error) {
+            console.log(error);
+        }
+        return count;
+    }
+    enrollUser = async (id_user, id_event, registration_date_time) => {
+        const client = new Client(DBConfig);
+        let retorno;
+        try {
+            await client.connect();
+            const sql = `INSERT INTO event_enrollments (user_id, event_id, registration_date_time) VALUES ($1, $2, $3) RETURNING *`;
+            const result = await client.query(sql, [userId, eventId, registrationDate]);
+            await client.end();
+            retorno = result.rows[0];
+        } catch (error) {
+            console.log(error);
+        }
+        return retorno;
+    }
+    unenrollUser = async (userId, eventId) => {
+        const client = new Client(DBConfig);
+        let retorno;
+        try {
+            await client.connect();
+            const sql = `DELETE FROM event_enrollments WHERE user_id = $1 AND event_id = $2`;
+            const result = await client.query(sql, [userId, eventId]);
+            await client.end();
+            retorno = result.rowCount > 0;
+        } catch (error) {
+            console.log(error);
+        }
+        return retorno;
+    }
 }
