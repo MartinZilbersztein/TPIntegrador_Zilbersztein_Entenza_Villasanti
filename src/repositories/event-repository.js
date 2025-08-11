@@ -126,14 +126,30 @@ export default class EventRepository{
         let retorno;
         try{
             await client.connect();
-            const sql = `insert into Eventos (name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user) values(${name},${description},${id_event_location},${start_date},${duration_in_minutes},${price},${enabled_for_enrollment},${max_assistance},${id})`
+            const sql = `insert into public.events (name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user) VALUES ('${name}','${description}',${id_event_location},'${start_date}',${duration_in_minutes},${price},${enabled_for_enrollment},${max_assistance},${id})`
+            console.log(sql);
             const result = await client.query(sql);
+            await client.end();
             retorno = result.rows;
         }
         catch(error) {
-            console.log(error)
-        };
+            console.log(error);
+        }
         return retorno;
+    }
+    modificarEvento = async(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,id) =>{
+        const client = new Client(DBConfig);
+        let retorno;
+        try {
+            await client.connect();
+            const sql = `update events set name = '${name}', description = '${description}', id_event_location = ${id_event_location}, start_date = '${start_date}', duration_in_minutes = ${duration_in_minutes}, price = ${price}, enabled_for_enrollment = ${enabled_for_enrollment}, max_assistance = ${max_assistance} where id = ${id};`;
+            const result = await client.query(sql);
+            await client.end();
+            retorno = result.rows;
+        } catch (error) {
+            console.log(error);
+        }
+        return retorno
     }
     isUserEnrolled = async (userId, eventId) => {
         const client = new Client(DBConfig);
