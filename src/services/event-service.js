@@ -20,8 +20,8 @@ export default class EventService{
     countEnrollments = async (id_event) => {
         return await repo.countEnrollments(id_event);
     }
-    enrollUser = async (id_user, id_event, registrationDate) => {
-        return await repo.enrollUser(id_user, id_event, registrationDate);
+    enrollUser = async (id_user, id_event, registration_date_time) => {
+        return await repo.enrollUser(id_user, id_event, registration_date_time);
     }
     unenrollUser = async (id_user, id_event) => {
         return await repo.unenrollUser(id_user, id_event);

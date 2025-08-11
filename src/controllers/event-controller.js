@@ -75,23 +75,23 @@ router.post('/:id/enrollment', async (req, res) => {
     let token, payload;
 
     if (!reqHeader) {
-        return res.status(401).json({ success: false, mensaje: "No autenticado" });
+        return res.status(401).send("No se encuentra autenticado");
     }
     try {
         token = reqHeader.split(' ')[1];
         payload = jwt.verify(token, secretKey);
     } catch (err) {
-        return res.status(401).json({ success: false, mensaje: "Token inválido" });
+        return res.status(401).send( "El token no es válido" );
     }
 
     const eventArr = await svc.getAllASyncById(eventId);
     if (!eventArr || eventArr.length === 0) {
-        return res.status(404).json({ success: false, mensaje: "Evento no encontrado" });
+        return res.status(404).send( "El evento no fue encontrado" );
     }
     const event = eventArr[0].event;
 
     if (!event.enabled_for_enrollment) {
-        return res.status(400).json({ success: false, mensaje: "El evento no está habilitado para inscripción" });
+        return res.status(400).send( "No está habilitada la inscripción" );
     }
 
     const eventDate = new Date(event.start_date);
@@ -107,18 +107,18 @@ router.post('/:id/enrollment', async (req, res) => {
 
     const enrolledCount = await svc.countEnrollments(eventId);
     if (enrolledCount >= event.max_assistance) {
-        return res.status(400).json({ success: false, mensaje: "Capacidad máxima alcanzada" });
+        return res.status(400).send( "Este evento ya se encuentra en su capacidad máxima" );
     }
 
     const alreadyEnrolled = await svc.isUserEnrolled(payload.id, eventId);
     if (alreadyEnrolled) {
-        return res.status(400).json({ success: false, mensaje: "El usuario ya está registrado en el evento" });
+        return res.status(400).send( "El usuario ya está registrado en el evento" );
     }
 
     const registrationDate = new Date();
     await svc.enrollUser(payload.id, eventId, registrationDate);
 
-    return res.status(201).json({ success: true, mensaje: "Inscripción exitosa" });
+    return res.status(201).send( "Inscripción exitosa" );
 });
 
 router.delete('/:id/enrollment', async (req, res) => {
@@ -128,24 +128,24 @@ router.delete('/:id/enrollment', async (req, res) => {
     let token, payload;
 
     if (!bearerHeader) {
-        return res.status(401).json({ success: false, mensaje: "No autenticado" });
+        return res.status(401).send( "No se encuentra autenticado" );
     }
     try {
         token = bearerHeader.split(' ')[1];
         payload = jwt.verify(token, secretKey);
     } catch (err) {
-        return res.status(401).json({ success: false, mensaje: "Token inválido" });
+        return res.status(401).send( "El token no es válido" );
     }
 
     const eventArr = await svc.getAllASyncById(eventId);
     if (!eventArr || eventArr.length === 0) {
-        return res.status(404).json({ success: false, mensaje: "Evento no encontrado" });
+        return res.status(404).send( "El evento no fue encontrado" );
     }
     const event = eventArr[0].event;
 
     const alreadyEnrolled = await svc.isUserEnrolled(payload.id, eventId);
     if (!alreadyEnrolled) {
-        return res.status(400).json({ success: false, mensaje: "El usuario no está registrado en el evento" });
+        return res.status(400).send( "No se encuentra registrado en el evento" );
     }
 
     const eventDate = new Date(event.start_date);
@@ -156,12 +156,12 @@ router.delete('/:id/enrollment', async (req, res) => {
          eventDate.getMonth() === now.getMonth() &&
          eventDate.getDate() === now.getDate())
     ) {
-        return res.status(400).json({ success: false, mensaje: "No se puede remover de un evento pasado o que es hoy" });
+        return res.status(400).send( "No se puede eliminar de un evento pasado o que es hoy" );
     }
 
     await svc.unenrollUser(payload.id, eventId);
 
-    return res.status(200).json({ success: true, mensaje: "Eliminado de la inscripción correctamente" });
+    return res.status(200).send( "Se eliminó exitosamente" );
 });
 
 export default router;

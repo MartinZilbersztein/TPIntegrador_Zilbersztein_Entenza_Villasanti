@@ -135,19 +135,19 @@ export default class EventRepository{
         };
         return retorno;
     }
-    isUserEnrolled = async (userId, eventId) => {
+    isUserEnrolled = async (id_user, id_event) => {
         const client = new Client(DBConfig);
-        let retorno = false;
+        let respuesta = false;
         try {
             await client.connect();
             const sql = `SELECT 1 FROM event_enrollments WHERE id_user = $1 AND id_event = $2 LIMIT 1`;
             const result = await client.query(sql, [id_user, id_event]);
             await client.end();
-            retorno = result.rows.length > 0;
+            respuesta = result.rows.length > 0;
         } catch (error) {
             console.log(error);
         }
-        return retorno;
+        return respuesta;
     }
     countEnrollments = async (id_event) => {
         const client = new Client(DBConfig);

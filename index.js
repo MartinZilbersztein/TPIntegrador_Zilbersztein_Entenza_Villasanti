@@ -12,7 +12,6 @@ app.use('/api/event', EventRouter);
 app.use('/api/event/:id', EventRouter);
 app.use('/api/user/', UserRouter);
 
-
 app.listen(port, () => {
     console.log(`Servidor corriendo en http://localhost:${port}`);
 });
