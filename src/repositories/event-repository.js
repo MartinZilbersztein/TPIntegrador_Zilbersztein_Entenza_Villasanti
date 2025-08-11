@@ -126,69 +126,98 @@ export default class EventRepository{
         let retorno;
         try{
             await client.connect();
-            const sql = `insert into Eventos (name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user) values(${name},${description},${id_event_location},${start_date},${duration_in_minutes},${price},${enabled_for_enrollment},${max_assistance},${id})`
+            const sql = `insert into public.events (name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user) VALUES ('${name}','${description}',${id_event_location},'${start_date}',${duration_in_minutes},${price},${enabled_for_enrollment},${max_assistance},${id})`
             const result = await client.query(sql);
+            await client.end();
             retorno = result.rows;
         }
         catch(error) {
-            console.log(error)
-        };
+            console.log(error);
+        }
+        return retorno;
+    }
+    modificarEvento = async(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,id) =>{
+        const client = new Client(DBConfig);
+        let retorno;
+        try {
+            await client.connect();
+            const sql = `update events set name = '${name}', description = '${description}', id_event_location = ${id_event_location}, start_date = '${start_date}', duration_in_minutes = ${duration_in_minutes}, price = ${price}, enabled_for_enrollment = ${enabled_for_enrollment}, max_assistance = ${max_assistance} where id = ${id};`;
+            const result = await client.query(sql);
+            await client.end();
+            retorno = result.rows;
+        } catch (error) {
+            console.log(error);
+        }
+        return retorno
+    }
+    eliminarEvento = async(id) =>{
+        const client = new Client(DBConfig);
+        let retorno;
+        try {
+            await client.connect();
+            const sql = `delete from events where id = ${id}`;
+            const result = await client.query(sql);
+            await client.end();
+            retorno = result.rows;
+        } catch (error) {
+            console.log(error);
+        }
         return retorno;
     }
     isUserEnrolled = async (id_user, id_event) => {
         const client = new Client(DBConfig);
-        let respuesta = false;
+        let retorno = false;
         try {
             await client.connect();
             const sql = `SELECT 1 FROM event_enrollments WHERE id_user = $1 AND id_event = $2 LIMIT 1`;
             const result = await client.query(sql, [id_user, id_event]);
             await client.end();
-            respuesta = result.rows.length > 0;
+            retorno = result.rows.length > 0;
         } catch (error) {
             console.log(error);
         }
-        return respuesta;
+        return retorno;
     }
     countEnrollments = async (id_event) => {
         const client = new Client(DBConfig);
-        let cantInscritos = 0;
+        let count = 0;
         try {
             await client.connect();
             const sql = `SELECT COUNT(*) FROM event_enrollments WHERE id_event = $1`;
-            const result = await client.query(sql, [id_event]);
+            const result = await client.query(sql, [eventId]);
             await client.end();
-            cantInscritos = parseInt(result.rows[0].count, 10);
+            count = parseInt(result.rows[0].count, 10);
         } catch (error) {
             console.log(error);
         }
-        return cantInscritos;
+        return count;
     }
     enrollUser = async (id_user, id_event, registration_date_time) => {
         const client = new Client(DBConfig);
-        let respuesta;
+        let retorno;
         try {
             await client.connect();
-            const sql = `INSERT INTO event_enrollments (id_user, id_event, registration_date_time) VALUES ($1, $2, $3) RETURNING *`;
-            const result = await client.query(sql, [id_user, id_event, registration_date_time]);
+            const sql = `INSERT INTO event_enrollments (user_id, event_id, registration_date_time) VALUES ($1, $2, $3) RETURNING *`;
+            const result = await client.query(sql, [userId, eventId, registrationDate]);
             await client.end();
-            respuesta = result.rows[0];
+            retorno = result.rows[0];
         } catch (error) {
             console.log(error);
         }
-        return respuesta;
+        return retorno;
     }
-    unenrollUser = async (id_user, id_event) => {
+    unenrollUser = async (userId, eventId) => {
         const client = new Client(DBConfig);
-        let respuesta;
+        let retorno;
         try {
             await client.connect();
-            const sql = `DELETE FROM event_enrollments WHERE id_user = $1 AND id_event = $2`;
-            const result = await client.query(sql, [id_user, id_event]);
+            const sql = `DELETE FROM event_enrollments WHERE user_id = $1 AND event_id = $2`;
+            const result = await client.query(sql, [userId, eventId]);
             await client.end();
-            respuesta = result.rowCount > 0;
+            retorno = result.rowCount > 0;
         } catch (error) {
             console.log(error);
         }
-        return respuesta;
+        return retorno;
     }
 }

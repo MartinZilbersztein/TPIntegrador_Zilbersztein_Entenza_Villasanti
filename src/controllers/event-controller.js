@@ -1,4 +1,4 @@
-import {Router} from 'express';
+import e, {Router} from 'express';
 import EventService from './../services/event-service.js';
 import jwt from 'jsonwebtoken';
 import { configDotenv } from 'dotenv';
@@ -43,8 +43,12 @@ router.post('/', async(req,res)=>{//agregar evento
        const bearer = bearerHeader.split(' ');
        token = bearer[1];
     }
+    try {
+        payloadOriginal = await jwt.verify(token, secretKey);
+    } catch (error) {
+        console.log(error);
+    }
     try{
-        payloadOriginal = jwt.verify(token, secretKey);
         if (payloadOriginal.id){
             if (name.length < 3 || description.length < 3) mensaje = res.status(400).send("El nombre y la descripción deben tener al menos tres letras");
             let maxAssistanceLugar = await svc.maxAssistanceLugar(id_event_location); 
@@ -54,11 +58,15 @@ router.post('/', async(req,res)=>{//agregar evento
                 maxAssistanceLugar = (maxAssistanceLugar[0].max_capacity);
                 if (maxAssistanceLugar < max_assistance) mensaje = res.status(400).send("La capacidad excede el máximo");
             }
-            if (fechaUsar >= Date.now()) mensaje = res.status(400).send("La fecha no puede ser posterior o la misma que la acutal");
+            if (fechaUsar <= Date.now()) mensaje = res.status(400).send("La fecha no puede ser anterior o la misma que la actual");
+            if (duration_in_minutes <= 0) mensaje = res.status(400).send("La duración no puede ser menor o igual a 0");
             if (price < 0) mensaje = res.status(400).send("El precio no puede ser menor a 0")
             if (!mensaje)
             {
                const array = svc.anadirEvento(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,payloadOriginal.id); 
+                if (array) {
+                    mensaje = res.status(201).send("Creado");
+                }
             }
         }
     }
@@ -67,7 +75,76 @@ router.post('/', async(req,res)=>{//agregar evento
     }
     return mensaje;
 });
-
+router.put('/', async(req,res)=>{//modificar evento
+    const body = req.body;
+    const secretKey = process.env.SECRET_KEY;
+    let payloadOriginal = null, token, mensaje = "", success = true;
+    const bearerHeader = req.headers['authorization'];
+    if (typeof bearerHeader !== 'undefined') 
+    {
+       const bearer = bearerHeader.split(' ');
+       token = bearer[1];
+    }
+    try{
+        payloadOriginal = jwt.verify(token, secretKey);
+        console.log(payloadOriginal.id);
+        if (payloadOriginal.id){
+            const evento = await svc.getAllASyncById(body.id);
+            if(evento.length != 0){
+                Object.keys(body).forEach(function (key,index) {
+                    if(body[key] != null) evento[0].event[key] = body[key];
+                });
+                const {name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id} = evento[0].event;
+                const fechaUsar = new Date(start_date).getTime();
+                if (name.length < 3 || description.length < 3) mensaje = res.status(400).send("El nombre y la descripción deben tener al menos tres letras");
+                let maxAssistanceLugar = await svc.maxAssistanceLugar(id_event_location); 
+                if (maxAssistanceLugar.length == 0) mensaje = res.status(400).send("No existe el lugar mencionado");
+                else 
+                {
+                    maxAssistanceLugar = (maxAssistanceLugar[0].max_capacity);
+                    if (maxAssistanceLugar < max_assistance) mensaje = res.status(400).send("La capacidad excede el máximo");
+                }
+                if (fechaUsar <= Date.now()) mensaje = res.status(400).send("La fecha no puede ser anterior o la misma que la actual");
+                if (duration_in_minutes <= 0) mensaje = res.status(400).send("La duración no puede ser menor o igual a 0");
+                if (price < 0) mensaje = res.status(400).send("El precio no puede ser menor a 0")
+                if (!mensaje)
+                {
+                    const array = svc.modificarEvento(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,id); 
+                    if (array) {
+                        mensaje = res.status(200).send("OK");
+                    }
+                }
+            }
+            else mensaje = res.status(404).send("Evento no existe");
+        }
+    }
+    catch(error){
+        console.log(error);
+    }
+    return mensaje;
+});
+router.delete('/:id', async(req,res)=>{//eliminar evento
+    const id = req.params.id;
+    const secretKey = process.env.SECRET_KEY;
+    let payloadOriginal = null, token, mensaje = "", success = true;
+    const bearerHeader = req.headers['authorization'];
+    let result;
+    if (typeof bearerHeader !== 'undefined') 
+    {
+       const bearer = bearerHeader.split(' ');
+       token = bearer[1];
+    }
+    try {
+        payloadOriginal = jwt.verify(token, secretKey);
+        if(payloadOriginal.id){
+            result = await svc.eliminarEvento(id);
+            if (result) mensaje = res.status(200).send("OK");
+        }
+    } catch (error) {
+        console.log(error);
+    }
+    return mensaje;
+});
 router.post('/:id/enrollment', async (req, res) => {
     const eventId = req.params.id;
     const reqHeader = req.headers['authorization'];
