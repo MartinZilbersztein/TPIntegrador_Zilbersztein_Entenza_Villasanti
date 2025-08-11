@@ -1,4 +1,4 @@
-import {Router} from 'express';
+import e, {Router} from 'express';
 import EventService from './../services/event-service.js';
 import jwt from 'jsonwebtoken';
 import { configDotenv } from 'dotenv';
@@ -43,8 +43,12 @@ router.post('/', async(req,res)=>{//agregar evento
        const bearer = bearerHeader.split(' ');
        token = bearer[1];
     }
+    try {
+        payloadOriginal = await jwt.verify(token, secretKey);
+    } catch (error) {
+        console.log(error);
+    }
     try{
-        payloadOriginal = jwt.verify(token, secretKey);
         if (payloadOriginal.id){
             if (name.length < 3 || description.length < 3) mensaje = res.status(400).send("El nombre y la descripción deben tener al menos tres letras");
             let maxAssistanceLugar = await svc.maxAssistanceLugar(id_event_location); 
@@ -60,9 +64,9 @@ router.post('/', async(req,res)=>{//agregar evento
             if (!mensaje)
             {
                const array = svc.anadirEvento(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,payloadOriginal.id); 
-               if (array) {
-                mensaje = res.status(201).send("Creado");
-               }
+                if (array) {
+                    mensaje = res.status(201).send("Creado");
+                }
             }
         }
     }
@@ -83,6 +87,7 @@ router.put('/', async(req,res)=>{//modificar evento
     }
     try{
         payloadOriginal = jwt.verify(token, secretKey);
+        console.log(payloadOriginal.id);
         if (payloadOriginal.id){
             const evento = await svc.getAllASyncById(body.id);
             if(evento.length != 0){
@@ -114,6 +119,28 @@ router.put('/', async(req,res)=>{//modificar evento
         }
     }
     catch(error){
+        console.log(error);
+    }
+    return mensaje;
+});
+router.delete('/:id', async(req,res)=>{//eliminar evento
+    const id = req.params.id;
+    const secretKey = process.env.SECRET_KEY;
+    let payloadOriginal = null, token, mensaje = "", success = true;
+    const bearerHeader = req.headers['authorization'];
+    let result;
+    if (typeof bearerHeader !== 'undefined') 
+    {
+       const bearer = bearerHeader.split(' ');
+       token = bearer[1];
+    }
+    try {
+        payloadOriginal = jwt.verify(token, secretKey);
+        if(payloadOriginal.id){
+            result = await svc.eliminarEvento(id);
+            if (result) mensaje = res.status(200).send("OK");
+        }
+    } catch (error) {
         console.log(error);
     }
     return mensaje;

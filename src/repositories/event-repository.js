@@ -127,7 +127,6 @@ export default class EventRepository{
         try{
             await client.connect();
             const sql = `insert into public.events (name, description, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user) VALUES ('${name}','${description}',${id_event_location},'${start_date}',${duration_in_minutes},${price},${enabled_for_enrollment},${max_assistance},${id})`
-            console.log(sql);
             const result = await client.query(sql);
             await client.end();
             retorno = result.rows;
@@ -150,6 +149,20 @@ export default class EventRepository{
             console.log(error);
         }
         return retorno
+    }
+    eliminarEvento = async(id) =>{
+        const client = new Client(DBConfig);
+        let retorno;
+        try {
+            await client.connect();
+            const sql = `delete from events where id = ${id}`;
+            const result = await client.query(sql);
+            await client.end();
+            retorno = result.rows;
+        } catch (error) {
+            console.log(error);
+        }
+        return retorno;
     }
     isUserEnrolled = async (id_user, id_event) => {
         const client = new Client(DBConfig);

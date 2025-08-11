@@ -17,6 +17,9 @@ export default class EventService{
     modificarEvento = async(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,id) =>{
         return await repo.modificarEvento(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,id);
     }
+    eliminarEvento = async(id) =>{
+        return await repo.eliminarEvento(id);
+    }
     isUserEnrolled = async (id_user, id_event) => {
         return await repo.isUserEnrolled(id_user, id_event);
     }
