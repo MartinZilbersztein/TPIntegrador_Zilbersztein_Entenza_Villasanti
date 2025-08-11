@@ -73,6 +73,7 @@ router.post('/:id/enrollment', async (req, res) => {
     const reqHeader = req.headers['authorization'];
     const secretKey = process.env.SECRET_KEY;
     let token, payload;
+    console.log(req.headers['authorization'])
 
     if (!reqHeader) {
         return res.status(401).send("No se encuentra autenticado");
