@@ -1,4 +1,4 @@
-import e, {Router} from 'express';
+import {Router} from 'express';
 import EventService from './../services/event-service.js';
 import jwt from 'jsonwebtoken';
 import { configDotenv } from 'dotenv';
@@ -43,12 +43,8 @@ router.post('/', async(req,res)=>{//agregar evento
        const bearer = bearerHeader.split(' ');
        token = bearer[1];
     }
-    try {
-        payloadOriginal = await jwt.verify(token, secretKey);
-    } catch (error) {
-        console.log(error);
-    }
     try{
+        payloadOriginal = await jwt.verify(token, secretKey);
         if (payloadOriginal.id){
             if (name.length < 3 || description.length < 3) mensaje = res.status(400).send("El nombre y la descripción deben tener al menos tres letras");
             let maxAssistanceLugar = await svc.maxAssistanceLugar(id_event_location); 
