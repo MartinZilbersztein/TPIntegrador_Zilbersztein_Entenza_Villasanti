@@ -151,7 +151,7 @@ export default class EventRepository{
         }
         return retorno
     }
-    isUserEnrolled = async (userId, eventId) => {
+    isUserEnrolled = async (id_user, id_event) => {
         const client = new Client(DBConfig);
         let retorno = false;
         try {
