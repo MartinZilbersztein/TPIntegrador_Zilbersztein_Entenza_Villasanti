@@ -151,44 +151,44 @@ export default class EventRepository{
     }
     countEnrollments = async (id_event) => {
         const client = new Client(DBConfig);
-        let count = 0;
+        let cantInscritos = 0;
         try {
             await client.connect();
             const sql = `SELECT COUNT(*) FROM event_enrollments WHERE id_event = $1`;
-            const result = await client.query(sql, [eventId]);
+            const result = await client.query(sql, [id_event]);
             await client.end();
-            count = parseInt(result.rows[0].count, 10);
+            cantInscritos = parseInt(result.rows[0].count, 10);
         } catch (error) {
             console.log(error);
         }
-        return count;
+        return cantInscritos;
     }
     enrollUser = async (id_user, id_event, registration_date_time) => {
         const client = new Client(DBConfig);
-        let retorno;
+        let respuesta;
         try {
             await client.connect();
-            const sql = `INSERT INTO event_enrollments (user_id, event_id, registration_date_time) VALUES ($1, $2, $3) RETURNING *`;
-            const result = await client.query(sql, [userId, eventId, registrationDate]);
+            const sql = `INSERT INTO event_enrollments (id_user, id_event, registration_date_time) VALUES ($1, $2, $3) RETURNING *`;
+            const result = await client.query(sql, [id_user, id_event, registration_date_time]);
             await client.end();
-            retorno = result.rows[0];
+            respuesta = result.rows[0];
         } catch (error) {
             console.log(error);
         }
-        return retorno;
+        return respuesta;
     }
-    unenrollUser = async (userId, eventId) => {
+    unenrollUser = async (id_user, id_event) => {
         const client = new Client(DBConfig);
-        let retorno;
+        let respuesta;
         try {
             await client.connect();
-            const sql = `DELETE FROM event_enrollments WHERE user_id = $1 AND event_id = $2`;
-            const result = await client.query(sql, [userId, eventId]);
+            const sql = `DELETE FROM event_enrollments WHERE id_user = $1 AND id_event = $2`;
+            const result = await client.query(sql, [id_user, id_event]);
             await client.end();
-            retorno = result.rowCount > 0;
+            respuesta = result.rowCount > 0;
         } catch (error) {
             console.log(error);
         }
-        return retorno;
+        return respuesta;
     }
 }

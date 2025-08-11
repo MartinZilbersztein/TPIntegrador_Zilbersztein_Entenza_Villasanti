@@ -70,15 +70,15 @@ router.post('/', async(req,res)=>{//agregar evento
 
 router.post('/:id/enrollment', async (req, res) => {
     const eventId = req.params.id;
-    const bearerHeader = req.headers['authorization'];
+    const reqHeader = req.headers['authorization'];
     const secretKey = process.env.SECRET_KEY;
     let token, payload;
 
-    if (!bearerHeader) {
+    if (!reqHeader) {
         return res.status(401).json({ success: false, mensaje: "No autenticado" });
     }
     try {
-        token = bearerHeader.split(' ')[1];
+        token = reqHeader.split(' ')[1];
         payload = jwt.verify(token, secretKey);
     } catch (err) {
         return res.status(401).json({ success: false, mensaje: "Token inválido" });

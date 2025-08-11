@@ -14,16 +14,16 @@ export default class EventService{
     anadirEvento = async(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,payloadOriginalId) =>{
         return await repo.anadirEvento(name,description,id_event_location,start_date,duration_in_minutes,price,enabled_for_enrollment,max_assistance,payloadOriginalId);
     }
-    isUserEnrolled = async (userId, eventId) => {
-        return await repo.isUserEnrolled(userId, eventId);
+    isUserEnrolled = async (id_user, id_event) => {
+        return await repo.isUserEnrolled(id_user, id_event);
     }
-    countEnrollments = async (eventId) => {
-        return await repo.countEnrollments(eventId);
+    countEnrollments = async (id_event) => {
+        return await repo.countEnrollments(id_event);
     }
-    enrollUser = async (userId, eventId, registrationDate) => {
-        return await repo.enrollUser(userId, eventId, registrationDate);
+    enrollUser = async (id_user, id_event, registrationDate) => {
+        return await repo.enrollUser(id_user, id_event, registrationDate);
     }
-    unenrollUser = async (userId, eventId) => {
-        return await repo.unenrollUser(userId, eventId);
+    unenrollUser = async (id_user, id_event) => {
+        return await repo.unenrollUser(id_user, id_event);
     }
 }
