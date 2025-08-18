@@ -143,55 +143,57 @@ router.delete('/:id', async(req,res)=>{//eliminar evento
 });
 router.post('/:id/enrollment', async (req, res) => {
     const eventId = req.params.id;
-    const reqHeader = req.headers['authorization'];
+    const bearerHeader = req.headers['authorization'];
     const secretKey = process.env.SECRET_KEY;
+    let payloadOriginal;
     let token, payload;
-    console.log(req.headers['authorization'])
-
-    if (!reqHeader) {
-        return res.status(401).send("No se encuentra autenticado");
+    if (typeof bearerHeader !== 'undefined') 
+    {
+       const bearer = bearerHeader.split(' ');
+       token = bearer[1];
     }
-    try {
-        token = reqHeader.split(' ')[1];
-        payload = jwt.verify(token, secretKey);
-    } catch (err) {
-        return res.status(401).send( "El token no es válido" );
+    try{
+        payloadOriginal = jwt.verify(token, secretKey);
     }
-
-    const eventArr = await svc.getAllASyncById(eventId);
-    if (!eventArr || eventArr.length === 0) {
-        return res.status(404).send( "El evento no fue encontrado" );
+    catch(error)
+    {
+        console.log(error);
     }
-    const event = eventArr[0].event;
+    if (payloadOriginal.id){
+        const eventArr = await svc.getAllASyncById(eventId);
+        if (!eventArr || eventArr.length === 0) {
+            return res.status(404).send( "El evento no fue encontrado" );
+        }
+        const event = eventArr[0].event;
 
-    if (!event.enabled_for_enrollment) {
-        return res.status(400).send( "No está habilitada la inscripción" );
+        if (!event.enabled_for_enrollment) {
+            return res.status(400).send( "No está habilitada la inscripción" );
+        }
+
+        let eventDate = new Date(event.start_date);
+        const now = new Date();
+        if (
+            eventDate <= now ||
+            (eventDate.getFullYear() === now.getFullYear() &&
+            eventDate.getMonth() === now.getMonth() &&
+            eventDate.getDate() === now.getDate())
+        ) {
+            return res.status(400).json({ success: false, mensaje: "No se puede registrar a un evento pasado o que es hoy" });
+        }
+
+        const enrolledCount = await svc.countEnrollments(eventId);
+        if (enrolledCount >= event.max_assistance) {
+            return res.status(400).send( "Este evento ya se encuentra en su capacidad máxima" );
+        }
+
+        const alreadyEnrolled = await svc.isUserEnrolled(payloadOriginal.id, eventId);
+        if (alreadyEnrolled) {
+            return res.status(400).send( "El usuario ya está registrado en el evento" );
+        }
+
+        const registrationDate = new Date();
+        await svc.enrollUser(payloadOriginal.id, eventId, registrationDate);
     }
-
-    const eventDate = new Date(event.start_date);
-    const now = new Date();
-    if (
-        eventDate <= now ||
-        (eventDate.getFullYear() === now.getFullYear() &&
-         eventDate.getMonth() === now.getMonth() &&
-         eventDate.getDate() === now.getDate())
-    ) {
-        return res.status(400).json({ success: false, mensaje: "No se puede registrar a un evento pasado o que es hoy" });
-    }
-
-    const enrolledCount = await svc.countEnrollments(eventId);
-    if (enrolledCount >= event.max_assistance) {
-        return res.status(400).send( "Este evento ya se encuentra en su capacidad máxima" );
-    }
-
-    const alreadyEnrolled = await svc.isUserEnrolled(payload.id, eventId);
-    if (alreadyEnrolled) {
-        return res.status(400).send( "El usuario ya está registrado en el evento" );
-    }
-
-    const registrationDate = new Date();
-    await svc.enrollUser(payload.id, eventId, registrationDate);
-
     return res.status(201).send( "Inscripción exitosa" );
 });
 

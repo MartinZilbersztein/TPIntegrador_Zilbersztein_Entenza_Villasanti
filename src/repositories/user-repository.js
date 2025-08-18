@@ -8,7 +8,7 @@ export default class UserRepository{
         let retorno;
         try{
             await client.connect();
-            const sql = `INSERT INTO users (first_name, last_name, username, password) VALUES ('${first_name}','${last_name}', '${username}', '${password}') RETURNING *`;
+            const sql = `INSERT INTO public.users (first_name, last_name, username, password) VALUES ('${first_name}','${last_name}', '${username}', '${password}') RETURNING *`;
             console.log(sql);
             const result = await client.query(sql);
             await client.end();

@@ -169,8 +169,8 @@ export default class EventRepository{
         let retorno = false;
         try {
             await client.connect();
-            const sql = `SELECT 1 FROM event_enrollments WHERE id_user = $1 AND id_event = $2 LIMIT 1`;
-            const result = await client.query(sql, [id_user, id_event]);
+            const sql = `SELECT 1 FROM event_enrollments WHERE id_user = ${id_user} AND id_event = ${id_event} LIMIT 1`;
+            const result = await client.query(sql);
             await client.end();
             retorno = result.rows.length > 0;
         } catch (error) {
@@ -183,8 +183,8 @@ export default class EventRepository{
         let count = 0;
         try {
             await client.connect();
-            const sql = `SELECT COUNT(*) FROM event_enrollments WHERE id_event = $1`;
-            const result = await client.query(sql, [eventId]);
+            const sql = `SELECT COUNT(*) FROM event_enrollments WHERE id_event = ${id_event}`;
+            const result = await client.query(sql);
             await client.end();
             count = parseInt(result.rows[0].count, 10);
         } catch (error) {
@@ -195,10 +195,13 @@ export default class EventRepository{
     enrollUser = async (id_user, id_event, registration_date_time) => {
         const client = new Client(DBConfig);
         let retorno;
+        console.log(registration_date_time);
         try {
             await client.connect();
-            const sql = `INSERT INTO event_enrollments (user_id, event_id, registration_date_time) VALUES ($1, $2, $3) RETURNING *`;
-            const result = await client.query(sql, [userId, eventId, registrationDate]);
+            const sql = `INSERT INTO public.event_enrollments (id_user, id_event, registration_date_time) VALUES (${id_user}, ${id_event}, '${registration_date_time}')`;
+            console.log(sql);
+            const result = await client.query(sql);
+            console.log(result);
             await client.end();
             retorno = result.rows[0];
         } catch (error) {
