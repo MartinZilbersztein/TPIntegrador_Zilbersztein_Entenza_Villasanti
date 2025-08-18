@@ -213,8 +213,8 @@ export default class EventRepository{
         let retorno;
         try {
             await client.connect();
-            const sql = `DELETE FROM event_enrollments WHERE user_id = $1 AND event_id = $2`;
-            const result = await client.query(sql, [userId, eventId]);
+            const sql = `DELETE FROM event_enrollments WHERE id_user = ${userId} AND id_event = ${eventId}`;
+            const result = await client.query(sql);
             await client.end();
             retorno = result.rowCount > 0;
         } catch (error) {

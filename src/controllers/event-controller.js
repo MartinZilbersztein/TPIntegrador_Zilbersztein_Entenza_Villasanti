@@ -38,13 +38,16 @@ router.post('/', async(req,res)=>{//agregar evento
     let payloadOriginal = null, token, mensaje = "", success = true;
     const bearerHeader = req.headers['authorization'];
     const fechaUsar = new Date(start_date).getTime();
-    if (typeof bearerHeader !== 'undefined') 
-    {
-       const bearer = bearerHeader.split(' ');
-       token = bearer[1];
+    if (!bearerHeader) {
+        return res.status(401).send( "No se encuentra autenticado" );
+    }
+    try {
+        token = bearerHeader.split(' ')[1];
+        payloadOriginal = jwt.verify(token, secretKey);
+    } catch (err) {
+        return res.status(401).send( "El token no es válido" );
     }
     try{
-        payloadOriginal = await jwt.verify(token, secretKey);
         if (payloadOriginal.id){
             if (name.length < 3 || description.length < 3) mensaje = res.status(400).send("El nombre y la descripción deben tener al menos tres letras");
             let maxAssistanceLugar = await svc.maxAssistanceLugar(id_event_location); 
@@ -76,14 +79,16 @@ router.put('/', async(req,res)=>{//modificar evento
     const secretKey = process.env.SECRET_KEY;
     let payloadOriginal = null, token, mensaje = "", success = true;
     const bearerHeader = req.headers['authorization'];
-    if (typeof bearerHeader !== 'undefined') 
-    {
-       const bearer = bearerHeader.split(' ');
-       token = bearer[1];
+    if (!bearerHeader) {
+        return res.status(401).send( "No se encuentra autenticado" );
+    }
+    try {
+        token = bearerHeader.split(' ')[1];
+        payloadOriginal = jwt.verify(token, secretKey);
+    } catch (err) {
+        return res.status(401).send( "El token no es válido" );
     }
     try{
-        payloadOriginal = jwt.verify(token, secretKey);
-        console.log(payloadOriginal.id);
         if (payloadOriginal.id){
             const evento = await svc.getAllASyncById(body.id);
             if(evento.length != 0){
@@ -125,13 +130,16 @@ router.delete('/:id', async(req,res)=>{//eliminar evento
     let payloadOriginal = null, token, mensaje = "", success = true;
     const bearerHeader = req.headers['authorization'];
     let result;
-    if (typeof bearerHeader !== 'undefined') 
-    {
-       const bearer = bearerHeader.split(' ');
-       token = bearer[1];
+    if (!bearerHeader) {
+        return res.status(401).send( "No se encuentra autenticado" );
     }
     try {
+        token = bearerHeader.split(' ')[1];
         payloadOriginal = jwt.verify(token, secretKey);
+    } catch (err) {
+        return res.status(401).send( "El token no es válido" );
+    }
+    try {
         if(payloadOriginal.id){
             result = await svc.eliminarEvento(id);
             if (result) mensaje = res.status(200).send("OK");
@@ -146,18 +154,15 @@ router.post('/:id/enrollment', async (req, res) => {
     const bearerHeader = req.headers['authorization'];
     const secretKey = process.env.SECRET_KEY;
     let payloadOriginal;
-    let token, payload;
-    if (typeof bearerHeader !== 'undefined') 
-    {
-       const bearer = bearerHeader.split(' ');
-       token = bearer[1];
+    let token;
+    if (!bearerHeader) {
+        return res.status(401).send( "No se encuentra autenticado" );
     }
-    try{
+    try {
+        token = bearerHeader.split(' ')[1];
         payloadOriginal = jwt.verify(token, secretKey);
-    }
-    catch(error)
-    {
-        console.log(error);
+    } catch (err) {
+        return res.status(401).send( "El token no es válido" );
     }
     if (payloadOriginal.id){
         const eventArr = await svc.getAllASyncById(eventId);
