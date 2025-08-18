@@ -172,7 +172,7 @@ router.post('/:id/enrollment', async (req, res) => {
 
         let eventDate = new Date(event.start_date);
         const now = new Date();
-        if (
+        if(
             eventDate <= now ||
             (eventDate.getFullYear() === now.getFullYear() &&
             eventDate.getMonth() === now.getMonth() &&
@@ -191,7 +191,7 @@ router.post('/:id/enrollment', async (req, res) => {
             return res.status(400).send( "El usuario ya está registrado en el evento" );
         }
 
-        const registrationDate = new Date();
+        const registrationDate = new Date().toISOString().split('T')[0];
         await svc.enrollUser(payloadOriginal.id, eventId, registrationDate);
     }
     return res.status(201).send( "Inscripción exitosa" );

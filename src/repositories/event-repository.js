@@ -195,7 +195,6 @@ export default class EventRepository{
     enrollUser = async (id_user, id_event, registration_date_time) => {
         const client = new Client(DBConfig);
         let retorno;
-        console.log(registration_date_time);
         try {
             await client.connect();
             const sql = `INSERT INTO public.event_enrollments (id_user, id_event, registration_date_time) VALUES (${id_user}, ${id_event}, '${registration_date_time}')`;
